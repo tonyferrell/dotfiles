@@ -32,7 +32,19 @@
 	conflictstyle = zdiff3
 [init]
 	defaultBranch = main
+[push]
+	default = current
+[rebase]
+	autoSquash = true
+[status]
+	showUntrackedFiles = all
 [alias]
 	# terminal code review of agent/dev changesets
 	review = "!hunk diff"
 	reviewlast = "!hunk show"
+	l = log --graph --pretty=format:'%C(cyan)%h%Creset -%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset%C(yellow)%d%Creset'
+	ln = log --graph --pretty=format:'%C(cyan)%h%Creset -%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset%C(yellow)%d%Creset' -n
+	fshow = show --pretty="" --name-only
+	fup = commit --fixup
+	sup = commit --squash
+	pup = push -u
