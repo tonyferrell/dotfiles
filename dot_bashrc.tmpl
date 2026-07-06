@@ -1,0 +1,66 @@
+# Managed by chezmoi — edit with `chezmoi edit ~/.bashrc`, apply with `chezmoi apply`.
+# Generic base for Linux machines. Machine/work specifics live in ~/.bashrc.local.
+
+# Non-interactive shells: do nothing.
+case $- in *i*) ;; *) return ;; esac
+
+# PATH: user-local + cargo first.
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+
+export EDITOR=nvim
+export VISUAL=nvim
+
+# History
+HISTCONTROL=ignoreboth
+HISTSIZE=100000
+HISTFILESIZE=200000
+shopt -s histappend checkwinsize
+
+# Bash completion
+if ! shopt -oq posix; then
+  [ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion
+fi
+
+# CVD-safe colors for tools that don't use the terminal ANSI palette by default.
+export BAT_THEME="ansi"
+export FZF_DEFAULT_OPTS="--color=hl:{{ .colors.blue }},hl+:{{ .colors.cyan }},pointer:{{ .colors.yellow }},marker:{{ .colors.green }},info:{{ .colors.bright_black }},prompt:{{ .colors.blue }}"
+export EZA_COLORS="ga=32:gm=33:gd=31"
+
+# --- modern CLI tool inits (guarded; no-op if a tool is absent) ---
+command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init bash)"      # z <dir>
+command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
+command -v atuin  >/dev/null 2>&1 && eval "$(atuin init bash)"        # Ctrl-r history
+command -v fzf    >/dev/null 2>&1 && eval "$(fzf --bash 2>/dev/null)" # Ctrl-t / Ctrl-r
+[ -f /usr/share/autojump/autojump.sh ] && . /usr/share/autojump/autojump.sh   # j <dir>
+[ -f ~/.fzf.bash ] && . ~/.fzf.bash
+
+# --- aliases ---
+if command -v eza >/dev/null 2>&1; then
+  alias ls='eza --group-directories-first'
+  alias ll='eza -la --git --group-directories-first'
+  alias la='eza -a'
+  alias lt='eza --tree --level=2'
+fi
+command -v bat  >/dev/null 2>&1 && alias cat='bat --paging=never'
+command -v nvim >/dev/null 2>&1 && { alias vim='nvim'; alias vi='nvim'; }
+alias gs='git status'
+alias gd='git diff'
+alias review='git review'   # hunk TUI on the working diff
+
+# --- machine-local overrides (NOT in this repo): CUDA/conda, work prompt, work env,
+#     secrets, etc. Hand-written per machine or delivered by a private overlay. ---
+[ -f ~/.bashrc.local ] && . ~/.bashrc.local
+
+# --- dotfiles staleness check (throttled to once/day, non-blocking) ---
+_chezmoi_staleness() {
+  command -v chezmoi >/dev/null 2>&1 || return
+  local dir stamp now mtime behind
+  dir=$(chezmoi source-path 2>/dev/null) || return
+  stamp="${TMPDIR:-/tmp}/.chezmoi-fetch-stamp"
+  now=$(date +%s)
+  mtime=$(stat -c %Y "$stamp" 2>/dev/null || echo 0)
+  if [ $((now - mtime)) -gt 86400 ]; then ( git -C "$dir" fetch --quiet 2>/dev/null; touch "$stamp" ) & fi
+  behind=$(git -C "$dir" rev-list --count HEAD..@{u} 2>/dev/null || echo 0)
+  [ "${behind:-0}" -gt 0 ] && printf '\033[33m⟳ dotfiles %s commit(s) behind — run chezmoi update\033[0m\n' "$behind"
+}
+_chezmoi_staleness

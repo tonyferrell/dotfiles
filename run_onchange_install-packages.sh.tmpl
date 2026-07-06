@@ -16,27 +16,42 @@ brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"
 [ -f "$HOME/.Brewfile.local" ] && brew bundle --file="$HOME/.Brewfile.local"
 
 {{ else if eq .chezmoi.os "linux" -}}
-# linux package set hash: 2026-07-05-b
-echo ">> installing dev tools (Linux, no sudo — user space, via cargo)"
-mkdir -p "$HOME/.local/bin"
+# linux package set hash: 2026-07-06-a
+# Everything installs into ~/.local (no sudo). Downloads go to a file then extract —
+# no piping remote scripts to a shell.
+echo ">> installing dev tools (Linux, no sudo — user space)"
+mkdir -p "$HOME/.local/bin" "$HOME/.local/opt"
 
-# cargo-binstall fetches prebuilt binaries from crates.io/GitHub (no compile,
-# no piping remote scripts to a shell). Bootstrap it with cargo if missing.
-if ! command -v cargo-binstall >/dev/null 2>&1; then
-  cargo install cargo-binstall
+# Rust CLI tools via cargo-binstall (prebuilt binaries from crates.io/GitHub)
+command -v cargo-binstall >/dev/null 2>&1 || cargo install cargo-binstall
+cargo binstall -y ripgrep fd-find bat eza git-delta difftastic zoxide atuin
+
+# Node (pinned LTS static tarball) — needed by pyright + hunk. Skip if node >= 18 exists.
+if [ "$(node -v 2>/dev/null | sed 's/v//;s/\..*//' || echo 0)" -lt 18 ]; then
+  NODE_VER=v22.11.0
+  curl -fsSL -o "$HOME/.local/opt/node.tar.xz" "https://nodejs.org/dist/${NODE_VER}/node-${NODE_VER}-linux-x64.tar.xz"
+  tar -xJf "$HOME/.local/opt/node.tar.xz" -C "$HOME/.local/opt" && rm -f "$HOME/.local/opt/node.tar.xz"
+  ln -sf "$HOME/.local/opt/node-${NODE_VER}-linux-x64/bin/"{node,npm,npx} "$HOME/.local/bin/"
 fi
 
-# Rust-ecosystem CLI tools (all have prebuilt binaries via binstall).
-cargo binstall -y \
-  ripgrep fd-find bat eza git-delta difftastic zoxide atuin
+# npm globals: Bitwarden CLI (secrets) + hunk (review TUI)
+npm i -g @bitwarden/cli hunkdiff 2>/dev/null || true
 
-# lazygit: pinned release tarball -> ~/.local/bin (download + extract, not exec).
-if ! command -v lazygit >/dev/null 2>&1; then
-  cargo binstall -y lazygit || echo "!! binstall lazygit failed — install manually if needed"
+# Neovim static tarball — kickstart needs >= 0.9. Install/upgrade if missing/old.
+if ! nvim --version 2>/dev/null | head -1 | grep -qE 'v(0\.(9|[1-9][0-9])|[1-9])'; then
+  curl -fsSL -o "$HOME/.local/opt/nvim.tar.gz" https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+  tar -xzf "$HOME/.local/opt/nvim.tar.gz" -C "$HOME/.local/opt" && rm -f "$HOME/.local/opt/nvim.tar.gz"
+  ln -sf "$HOME/.local/opt/nvim-linux-x86_64/bin/nvim" "$HOME/.local/bin/nvim"
 fi
 
-# hunk: TUI review tool (needs Node 18+ via your nvm).
-if command -v npm >/dev/null 2>&1; then npm i -g hunkdiff || true; else echo "!! npm not found (load nvm) — skipping hunk"; fi
-
-echo ">> NOTE: neovim/gh/tig from apt may be old; upgrade with sudo when convenient."
+# tmux (static AppImage, extracted) — >= 3.3 for allow-passthrough. Install if missing/old.
+if ! tmux -V 2>/dev/null | grep -qE '3\.[3-9]|[4-9]'; then
+  ( cd "$HOME/.local/opt" \
+    && curl -fsSL -o tmux.appimage https://github.com/nelsonenzo/tmux-appimage/releases/download/3.5a/tmux.appimage \
+    && chmod +x tmux.appimage && ./tmux.appimage --appimage-extract >/dev/null \
+    && rm -f tmux.appimage && rm -rf tmux-appimage && mv squashfs-root tmux-appimage )
+  printf '#!/usr/bin/env bash\nexec "$HOME/.local/opt/tmux-appimage/AppRun" "$@"\n' > "$HOME/.local/bin/tmux"
+  chmod +x "$HOME/.local/bin/tmux"
+fi
+# (lazygit / tig / gh not auto-installed on Linux yet — add release tarballs if wanted.)
 {{ end -}}
