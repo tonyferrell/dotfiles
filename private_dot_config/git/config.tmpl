@@ -15,10 +15,10 @@
 	hyperlinks = true
 	# Okabe-Ito CVD styling (protanopia-safe): teal additions, vermillion deletions,
 	# distinguished by hue (blue channel) + brightness, not the red/green axis.
-	minus-style = normal "#3a1f14"
-	minus-emph-style = normal "#5c2f18"
-	plus-style = normal "#0f2b20"
-	plus-emph-style = normal "#155e42"
+	minus-style = normal "{{ .colors.diff_minus_bg }}"
+	minus-emph-style = normal "{{ .colors.diff_minus_emph_bg }}"
+	plus-style = normal "{{ .colors.diff_plus_bg }}"
+	plus-emph-style = normal "{{ .colors.diff_plus_emph_bg }}"
 	line-numbers-minus-style = "{{ .colors.red }}"
 	line-numbers-plus-style = "{{ .colors.green }}"
 	line-numbers-zero-style = "{{ .colors.bright_black }}"
