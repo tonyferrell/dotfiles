@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Installs Tony's dev toolset. Re-runs only when this script's rendered content
+# changes (chezmoi run_onchange) — the embedded hashes below force that when the
+# package lists change.
+set -euo pipefail
+
+# tmux plugin manager — cloned to the XDG path so tpm + its plugins are co-located.
+TPM_DIR="$HOME/.config/tmux/plugins/tpm"
+[ -d "$TPM_DIR" ] || git clone --depth 1 https://github.com/tmux-plugins/tpm "$TPM_DIR"
+
+{{ if eq .chezmoi.os "darwin" -}}
+# Brewfile hash: {{ include "Brewfile" | sha256sum }}
+echo ">> brew bundle (macOS)"
+brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"
+# per-machine extra packages (not in this repo), if present
+[ -f "$HOME/.Brewfile.local" ] && brew bundle --file="$HOME/.Brewfile.local"
+
+{{ else if eq .chezmoi.os "linux" -}}
+# linux package set hash: 2026-07-05-b
+echo ">> installing dev tools (Linux, no sudo — user space, via cargo)"
+mkdir -p "$HOME/.local/bin"
+
+# cargo-binstall fetches prebuilt binaries from crates.io/GitHub (no compile,
+# no piping remote scripts to a shell). Bootstrap it with cargo if missing.
+if ! command -v cargo-binstall >/dev/null 2>&1; then
+  cargo install cargo-binstall
+fi
+
+# Rust-ecosystem CLI tools (all have prebuilt binaries via binstall).
+cargo binstall -y \
+  ripgrep fd-find bat eza git-delta difftastic zoxide atuin
+
+# lazygit: pinned release tarball -> ~/.local/bin (download + extract, not exec).
+if ! command -v lazygit >/dev/null 2>&1; then
+  cargo binstall -y lazygit || echo "!! binstall lazygit failed — install manually if needed"
+fi
+
+# hunk: TUI review tool (needs Node 18+ via your nvm).
+if command -v npm >/dev/null 2>&1; then npm i -g hunkdiff || true; else echo "!! npm not found (load nvm) — skipping hunk"; fi
+
+echo ">> NOTE: neovim/gh/tig from apt may be old; upgrade with sudo when convenient."
+{{ end -}}

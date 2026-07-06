@@ -1,0 +1,175 @@
+-- Managed by chezmoi. Kickstart-style, single-file config.
+-- Colors come from the shared Okabe-Ito palette (.chezmoidata/colors.yaml) so
+-- neovim stays colorblind-safe in lockstep with ghostty/tmux/git.
+
+-- ─────────────────────────── palette (from chezmoi) ───────────────────────────
+local cvd = {
+  bg = "{{ .colors.bg }}",
+  fg = "{{ .colors.fg }}",
+  red = "{{ .colors.red }}", -- vermillion: errors / deletions
+  green = "{{ .colors.green }}", -- teal: ok / additions
+  yellow = "{{ .colors.yellow }}", -- gold: warnings / changes
+  blue = "{{ .colors.blue }}",
+  cyan = "{{ .colors.cyan }}", -- hints / info
+  magenta = "{{ .colors.magenta }}",
+  gray = "{{ .colors.bright_black }}",
+}
+
+-- ─────────────────────────────── options ─────────────────────────────────────
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
+
+-- Disable netrw (unused — files via Telescope <leader>ff). Must be set before it
+-- loads. `gx`/URL-open still works via vim.ui.open on this nvim. Note: `nvim <dir>`
+-- no longer shows a listing; add oil.nvim if you ever want in-editor file ops.
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+local o = vim.opt
+o.number = true
+o.relativenumber = true
+o.mouse = "a"
+o.clipboard = "unnamedplus" -- yanks go to system clipboard (OSC52 over SSH in 0.10+)
+o.ignorecase = true
+o.smartcase = true
+o.termguicolors = true
+o.signcolumn = "yes"
+o.undofile = true
+o.updatetime = 250
+o.scrolloff = 8
+o.expandtab = true
+o.shiftwidth = 2
+o.tabstop = 2
+o.splitright = true
+o.splitbelow = true
+
+-- ─────────────────────── colorblind (protanopia) layer ───────────────────────
+-- Re-applied on every :colorscheme so it always wins. Overrides only the groups
+-- where the red/green axis carries meaning; leaves syntax token hues alone.
+local function apply_cvd_highlights()
+  local set = vim.api.nvim_set_hl
+  -- Diagnostics: error=vermillion, warn=gold, info=blue, hint=cyan, ok=teal
+  set(0, "DiagnosticError", { fg = cvd.red })
+  set(0, "DiagnosticWarn", { fg = cvd.yellow })
+  set(0, "DiagnosticInfo", { fg = cvd.blue })
+  set(0, "DiagnosticHint", { fg = cvd.cyan })
+  set(0, "DiagnosticOk", { fg = cvd.green })
+  -- Diffs: additions=teal bg, deletions=vermillion bg, changes=gold, distinguished
+  -- by hue (blue channel) + brightness rather than red/green.
+  set(0, "DiffAdd", { fg = cvd.green, bg = "#0f2b20" })
+  set(0, "DiffDelete", { fg = cvd.red, bg = "#3a1f14" })
+  set(0, "DiffChange", { fg = cvd.yellow, bg = "#2b2410" })
+  set(0, "DiffText", { fg = cvd.bg, bg = cvd.yellow })
+  -- gitsigns gutter
+  set(0, "GitSignsAdd", { fg = cvd.green })
+  set(0, "GitSignsChange", { fg = cvd.yellow })
+  set(0, "GitSignsDelete", { fg = cvd.red })
+  -- git conflict / added-removed text objects
+  set(0, "Added", { fg = cvd.green })
+  set(0, "Changed", { fg = cvd.yellow })
+  set(0, "Removed", { fg = cvd.red })
+end
+vim.api.nvim_create_autocmd("ColorScheme", { callback = apply_cvd_highlights })
+
+-- ─────────────────────────── lazy.nvim bootstrap ─────────────────────────────
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+  vim.fn.system({
+    "git", "clone", "--filter=blob:none", "--branch=stable",
+    "https://github.com/folke/lazy.nvim.git", lazypath,
+  })
+end
+vim.opt.rtp:prepend(lazypath)
+
+require("lazy").setup({
+  -- Base colorscheme (high contrast). CVD layer above overrides the risky groups.
+  {
+    "folke/tokyonight.nvim",
+    priority = 1000,
+    config = function()
+      vim.cmd.colorscheme("tokyonight-night")
+      apply_cvd_highlights()
+    end,
+  },
+
+  -- Fuzzy finder
+  {
+    "nvim-telescope/telescope.nvim",
+    branch = "0.1.x",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      local t = require("telescope.builtin")
+      vim.keymap.set("n", "<leader>ff", t.find_files, { desc = "Find files" })
+      vim.keymap.set("n", "<leader>fg", t.live_grep, { desc = "Live grep" })
+      vim.keymap.set("n", "<leader>fb", t.buffers, { desc = "Buffers" })
+      vim.keymap.set("n", "<leader>fd", t.diagnostics, { desc = "Diagnostics" })
+    end,
+  },
+
+  -- Treesitter (syntax)
+  {
+    "nvim-treesitter/nvim-treesitter",
+    branch = "master", -- stable classic API; `main` is the incompatible rewrite
+    build = ":TSUpdate",
+    config = function()
+      require("nvim-treesitter.configs").setup({
+        ensure_installed = { "lua", "python", "bash", "json", "yaml", "markdown", "markdown_inline", "go", "typescript" },
+        auto_install = true,
+        highlight = { enable = true },
+        indent = { enable = true },
+      })
+    end,
+  },
+
+  -- LSP + installer
+  {
+    "neovim/nvim-lspconfig",
+    dependencies = { "williamboman/mason.nvim", "williamboman/mason-lspconfig.nvim" },
+    config = function()
+      require("mason").setup()
+      require("mason-lspconfig").setup({ ensure_installed = { "lua_ls", "pyright" } })
+      vim.api.nvim_create_autocmd("LspAttach", {
+        callback = function(ev)
+          local map = function(k, fn, d) vim.keymap.set("n", k, fn, { buffer = ev.buf, desc = d }) end
+          map("gd", vim.lsp.buf.definition, "Goto definition")
+          map("gr", require("telescope.builtin").lsp_references, "References")
+          map("K", vim.lsp.buf.hover, "Hover")
+          map("<leader>rn", vim.lsp.buf.rename, "Rename")
+          map("<leader>ca", vim.lsp.buf.code_action, "Code action")
+        end,
+      })
+    end,
+  },
+
+  -- Completion
+  {
+    "hrsh7th/nvim-cmp",
+    dependencies = { "hrsh7th/cmp-nvim-lsp", "L3MON4D3/LuaSnip", "saadparwaiz1/cmp_luasnip" },
+    config = function()
+      local cmp = require("cmp")
+      cmp.setup({
+        snippet = { expand = function(a) require("luasnip").lsp_expand(a.body) end },
+        mapping = cmp.mapping.preset.insert({
+          ["<CR>"] = cmp.mapping.confirm({ select = true }),
+          ["<C-Space>"] = cmp.mapping.complete(),
+        }),
+        sources = { { name = "nvim_lsp" }, { name = "luasnip" } },
+      })
+    end,
+  },
+
+  -- Git signs + statusline + keymap help
+  { "lewis6991/gitsigns.nvim", config = true },
+
+  -- In-editor markdown rendering (headings, tables, code blocks, checkboxes).
+  -- Terminal-native (no browser) — works over SSH. Shows raw text on the cursor line.
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    dependencies = { "nvim-treesitter/nvim-treesitter" },
+    ft = { "markdown" },
+    opts = {},
+  },
+  { "nvim-lualine/lualine.nvim", opts = { options = { theme = "auto" } } },
+  { "folke/which-key.nvim", event = "VeryLazy", config = true },
+}, {
+  ui = { border = "rounded" },
+})

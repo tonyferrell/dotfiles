@@ -1,0 +1,73 @@
+# Managed by chezmoi — edit with `chezmoi edit ~/.zshrc`, apply with `chezmoi apply`.
+
+# PATH is nix-first. On macOS /opt/homebrew/bin is already added by path_helper
+# (/etc/paths.d/homebrew), so we deliberately do NOT run `brew shellenv` — that
+# would prepend brew ahead of nix. nix-daemon below prepends nix, so nix wins in a
+# plain shell; project nix devshells prepend their own tools and override either way.
+export PATH="$HOME/.local/bin:$PATH"
+[ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ] && \
+  . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+# Force nix-first: macOS path_helper otherwise lists /opt/homebrew/bin ahead of
+# the nix profile. Prepend nix dirs, then dedup (zsh keeps the first occurrence).
+path=("$HOME/.nix-profile/bin" "/nix/var/nix/profiles/default/bin" $path)
+typeset -U path
+
+export EDITOR=nvim
+export VISUAL=nvim
+
+# CVD-safe colors for tools that don't use the terminal ANSI palette by default.
+export BAT_THEME="ansi"   # bat rides the terminal's CVD ANSI palette
+# fzf match/pointer colors from the Okabe-Ito palette (no red/green highlighting)
+export FZF_DEFAULT_OPTS="--color=hl:{{ .colors.blue }},hl+:{{ .colors.cyan }},pointer:{{ .colors.yellow }},marker:{{ .colors.green }},info:{{ .colors.bright_black }},prompt:{{ .colors.blue }}"
+# eza git indicators via ANSI codes (resolve through the CVD palette): added=teal(32),
+# modified=gold(33), deleted=vermillion(31)
+export EZA_COLORS="ga=32:gm=33:gd=31"
+
+# --- modern CLI tool inits (guarded; no-op if a tool is absent) ---
+command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"    # z <dir>  (frecency jump)
+command -v direnv >/dev/null 2>&1 && eval "$(direnv hook zsh)"    # per-directory env
+command -v atuin  >/dev/null 2>&1 && eval "$(atuin init zsh)"     # Ctrl-r history
+command -v fzf    >/dev/null 2>&1 && source <(fzf --zsh 2>/dev/null)  # Ctrl-t / Ctrl-r fuzzy
+# autojump: your `j <dir>` muscle memory
+{{ if eq .chezmoi.os "darwin" -}}
+[ -f /opt/homebrew/etc/profile.d/autojump.sh ] && . /opt/homebrew/etc/profile.d/autojump.sh
+{{ else -}}
+[ -f /usr/share/autojump/autojump.sh ] && . /usr/share/autojump/autojump.sh
+{{ end -}}
+
+# --- aliases ---
+if command -v eza >/dev/null 2>&1; then
+  alias ls='eza --group-directories-first'
+  alias ll='eza -la --git --group-directories-first'
+  alias la='eza -a'
+  alias lt='eza --tree --level=2'
+fi
+command -v bat >/dev/null 2>&1 && alias cat='bat --paging=never'
+# `vim`/`vi` launch neovim (system vim at /usr/bin/vim still reachable as \vim or /usr/bin/vim)
+command -v nvim >/dev/null 2>&1 && { alias vim='nvim'; alias vi='nvim'; }
+alias gs='git status'
+alias gd='git diff'
+alias review='git review'   # hunk TUI on the working diff
+
+# (Work-specific prompt logic lives in the private overlay's work.sh, sourced below.)
+
+# --- machine-local overrides (NOT in this repo: hand-written per machine, or
+#     delivered by a private overlay). Shell env/aliases/extra-tool setup go here;
+#     git identity lives in ~/.config/git/local.inc. No-op if absent. ---
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local
+
+# --- dotfiles staleness check (throttled to once/day, non-blocking) ---
+_chezmoi_staleness() {
+  command -v chezmoi >/dev/null 2>&1 || return
+  local dir stamp now mtime behind
+  dir=$(chezmoi source-path 2>/dev/null) || return
+  stamp="${TMPDIR:-/tmp}/.chezmoi-fetch-stamp"
+  now=$(date +%s)
+  mtime=$(stat -f %m "$stamp" 2>/dev/null || stat -c %Y "$stamp" 2>/dev/null || echo 0)
+  if (( now - mtime > 86400 )); then
+    ( git -C "$dir" fetch --quiet 2>/dev/null; touch "$stamp" ) &!
+  fi
+  behind=$(git -C "$dir" rev-list --count HEAD..@{u} 2>/dev/null || echo 0)
+  (( behind > 0 )) && print -P "%F{yellow}⟳ dotfiles $behind commit(s) behind — run 'chezmoi update'%f"
+}
+_chezmoi_staleness

@@ -1,0 +1,23 @@
+# Okabe-Ito colorblind-safe palette — single source of truth.
+# Referenced by ghostty, tmux, git/delta, nvim, etc. via chezmoi templates
+# (e.g. {{ .colors.red }}). Chosen so protanopes distinguish hues by the blue
+# channel + brightness rather than the red/green axis they can't see.
+colors:
+  bg: "#15171e"
+  fg: "#e4e4e4"
+  black: "#2b2d34"
+  red: "#D55E00" # vermillion (semantic "error"/deletions)
+  green: "#009E73" # bluish green / teal (semantic "ok"/additions)
+  yellow: "#F0C300" # gold (semantic "warning")
+  blue: "#0072B2"
+  magenta: "#CC79A7" # reddish purple
+  cyan: "#56B4E9" # sky blue
+  white: "#d0d0d0"
+  bright_black: "#5c5f66"
+  bright_red: "#F5793A"
+  bright_green: "#1FC8A0"
+  bright_yellow: "#F5DA00"
+  bright_blue: "#7FB8E6"
+  bright_magenta: "#E5A3C9"
+  bright_cyan: "#8FD6F5"
+  bright_white: "#ffffff"

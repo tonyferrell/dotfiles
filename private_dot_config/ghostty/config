@@ -1,0 +1,56 @@
+# Ghostty — Mac terminal for SSH+tmux into tony-omen.
+# Fixes remote copy/paste: Ghostty honors OSC 52, which Terminal.app dropped.
+# NOTE: Ghostty has no inline comments — a '#' after a value becomes part of the value.
+
+font-family = FiraCode Nerd Font
+font-size = 14
+
+# keep FiraCode ligatures (=> != ->) on
+font-feature = calt
+
+# Protanopia-safe palette (Okabe-Ito based) instead of a stock theme.
+# Remapping the 16 ANSI colors fixes ALL CLI tools at once (git diff, ls, grep,
+# test output): "red" -> vermillion-orange, "green" -> teal — separable by the
+# blue channel and by brightness, not by the red/green hue protanopes can't see.
+background = #15171e
+foreground = #e4e4e4
+cursor-color = #F0C300
+cursor-text = #15171e
+selection-background = #33415e
+selection-foreground = #ffffff
+
+palette = 0=#2b2d34
+palette = 1=#D55E00
+palette = 2=#009E73
+palette = 3=#F0C300
+palette = 4=#0072B2
+palette = 5=#CC79A7
+palette = 6=#56B4E9
+palette = 7=#d0d0d0
+palette = 8=#5c5f66
+palette = 9=#F5793A
+palette = 10=#1FC8A0
+palette = 11=#F5DA00
+palette = 12=#7FB8E6
+palette = 13=#E5A3C9
+palette = 14=#8FD6F5
+palette = 15=#ffffff
+
+# Clipboard: let remote tmux write the Mac clipboard over SSH via OSC 52.
+clipboard-read = allow
+clipboard-write = allow
+clipboard-paste-protection = true
+
+# Meta/Alt works for tmux and editors instead of typing accented chars.
+macos-option-as-alt = true
+
+# Shift+Enter -> literal newline (multiline input in Claude Code / shells).
+# Without this, Ghostty's Kitty-keyboard encoding echoes as stray characters
+# in apps that don't speak the protocol.
+keybind = shift+enter=text:\n
+
+scrollback-limit = 10000000
+
+# Accessibility: force a minimum fg/bg contrast ratio so low-contrast color
+# combos (e.g. a program painting dim text) stay legible.
+minimum-contrast = 1.1

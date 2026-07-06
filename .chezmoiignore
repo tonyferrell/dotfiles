@@ -1,0 +1,12 @@
+# Manifests consumed by the package hook — do NOT materialize into $HOME.
+Brewfile
+README.md
+USAGE.md
+
+# OS-gating: only materialize where relevant.
+{{ if ne .chezmoi.os "darwin" }}
+.config/ghostty/config
+{{ end }}
+{{ if ne .chezmoi.os "linux" }}
+.bashrc
+{{ end }}

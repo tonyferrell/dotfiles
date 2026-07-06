@@ -1,0 +1,38 @@
+# Review-tooling git config (delta + hunk + CVD colors). PUBLIC base — no work
+# identity/email here. Email comes from an optional machine-local include below
+# (git silently ignores it if absent), which the private work overlay provides.
+[user]
+	name = Tony Ferrell
+[include]
+	path = ~/.config/git/local.inc
+[core]
+	pager = delta
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+	line-numbers = true
+	hyperlinks = true
+	# Okabe-Ito CVD styling (protanopia-safe): teal additions, vermillion deletions,
+	# distinguished by hue (blue channel) + brightness, not the red/green axis.
+	minus-style = normal "#3a1f14"
+	minus-emph-style = normal "#5c2f18"
+	plus-style = normal "#0f2b20"
+	plus-emph-style = normal "#155e42"
+	line-numbers-minus-style = "{{ .colors.red }}"
+	line-numbers-plus-style = "{{ .colors.green }}"
+	line-numbers-zero-style = "{{ .colors.bright_black }}"
+[diff]
+	colorMoved = default
+[difftool]
+	prompt = false
+[difftool "hunk"]
+	cmd = hunk diff "$LOCAL" "$REMOTE"
+[merge]
+	conflictstyle = zdiff3
+[init]
+	defaultBranch = main
+[alias]
+	# terminal code review of agent/dev changesets
+	review = "!hunk diff"
+	reviewlast = "!hunk show"

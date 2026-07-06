@@ -1,0 +1,57 @@
+# Managed by chezmoi — one config for mac + omen.
+
+set-option -g history-limit 100000
+
+# modern colors
+set -g default-terminal "tmux-256color"
+set -ga terminal-overrides ",*:Tc"        # generic truecolor
+set -ga terminal-features "*:clipboard"   # advertise OSC 52
+set -g focus-events on
+
+# tmux plugin manager
+set -g @plugin 'tmux-plugins/tpm'
+set -g @plugin 'tmux-plugins/tmux-resurrect'
+set -g @plugin 'tmux-plugins/tmux-continuum'
+set -g @continuum-restore 'on'
+
+# Ctrl-a prefix like screen
+unbind C-b
+set -g prefix C-a
+bind C-a send-prefix
+
+# Clipboard via OSC 52 (works over SSH)
+set -g set-clipboard on
+# allow-passthrough needs tmux >= 3.3; guard so older tmux doesn't error
+if-shell -b '[ "$(tmux -V | sed "s/[^0-9.]//g" | awk -F. "{ print ($1 * 100) + $2 }")" -ge 303 ]' "set -g allow-passthrough on"
+
+set -s escape-time 0
+set -g set-titles on
+set -g set-titles-string "#T"
+set -g mouse on
+set -g mode-keys vi
+
+# Copy to system clipboard
+{{ if eq .chezmoi.os "darwin" -}}
+bind -T copy-mode-vi MouseDragEnd1Pane send -X copy-pipe-and-cancel "pbcopy"
+bind -T copy-mode-vi y                 send -X copy-pipe-and-cancel "pbcopy"
+{{ else -}}
+bind -T copy-mode-vi MouseDragEnd1Pane send -X copy-selection-and-cancel
+bind -T copy-mode-vi y                 send -X copy-selection-and-cancel
+{{ end -}}
+
+# Protanopia-safe status bar (blue bar + gold active; avoids default green)
+set -g status-style "bg={{ .colors.blue }},fg={{ .colors.bright_white }}"
+set -g window-status-current-style "bg={{ .colors.yellow }},fg={{ .colors.bg }},bold"
+set -g pane-active-border-style "fg={{ .colors.yellow }}"
+set -g pane-border-style "fg={{ .colors.bright_black }}"
+
+# vi pane navigation
+bind h select-pane -L
+bind j select-pane -D
+bind k select-pane -U
+bind l select-pane -R
+
+# Initialize TMUX plugin manager (keep at the very bottom).
+# Load tpm from the XDG path so it's co-located with the plugins it installs
+# (TPM installs to ~/.config/tmux/plugins/ when the config is under ~/.config/tmux).
+run '~/.config/tmux/plugins/tpm/tpm'
