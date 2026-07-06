@@ -161,7 +161,17 @@ require("lazy").setup({
   },
 
   -- Git signs + statusline + keymap help
-  { "lewis6991/gitsigns.nvim", config = true },
+  {
+    "lewis6991/gitsigns.nvim",
+    opts = {
+      on_attach = function(buf)
+        local gs = require("gitsigns")
+        local map = function(k, fn, d) vim.keymap.set("n", k, fn, { buffer = buf, desc = d }) end
+        map("<leader>gb", gs.blame_line, "Blame line (popup)")
+        map("<leader>gB", gs.toggle_current_line_blame, "Toggle inline blame")
+      end,
+    },
+  },
 
   -- In-editor markdown rendering (headings, tables, code blocks, checkboxes).
   -- Terminal-native (no browser) — works over SSH. Shows raw text on the cursor line.
