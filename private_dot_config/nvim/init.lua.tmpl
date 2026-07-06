@@ -13,6 +13,9 @@ local cvd = {
   cyan = "{{ .colors.cyan }}", -- hints / info
   magenta = "{{ .colors.magenta }}",
   gray = "{{ .colors.bright_black }}",
+  add_bg = "{{ .colors.diff_plus_bg }}", -- diff backgrounds (single-sourced)
+  del_bg = "{{ .colors.diff_minus_bg }}",
+  chg_bg = "{{ .colors.diff_change_bg }}",
 }
 
 -- ─────────────────────────────── options ─────────────────────────────────────
@@ -55,9 +58,9 @@ local function apply_cvd_highlights()
   set(0, "DiagnosticOk", { fg = cvd.green })
   -- Diffs: additions=teal bg, deletions=vermillion bg, changes=gold, distinguished
   -- by hue (blue channel) + brightness rather than red/green.
-  set(0, "DiffAdd", { fg = cvd.green, bg = "#0f2b20" })
-  set(0, "DiffDelete", { fg = cvd.red, bg = "#3a1f14" })
-  set(0, "DiffChange", { fg = cvd.yellow, bg = "#2b2410" })
+  set(0, "DiffAdd", { fg = cvd.green, bg = cvd.add_bg })
+  set(0, "DiffDelete", { fg = cvd.red, bg = cvd.del_bg })
+  set(0, "DiffChange", { fg = cvd.yellow, bg = cvd.chg_bg })
   set(0, "DiffText", { fg = cvd.bg, bg = cvd.yellow })
   -- gitsigns gutter
   set(0, "GitSignsAdd", { fg = cvd.green })

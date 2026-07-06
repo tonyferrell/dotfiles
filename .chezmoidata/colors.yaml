@@ -21,3 +21,10 @@ colors:
   bright_magenta: "#E5A3C9"
   bright_cyan: "#8FD6F5"
   bright_white: "#ffffff"
+  # dark desaturated diff-background tints (git-delta): vermillion for deletions,
+  # teal for additions — kept here so ALL delta colors track the single source.
+  diff_minus_bg: "#3a1f14"
+  diff_minus_emph_bg: "#5c2f18"
+  diff_plus_bg: "#0f2b20"
+  diff_plus_emph_bg: "#155e42"
+  diff_change_bg: "#2b2410" # nvim DiffChange (gold-tinted)
