@@ -1,4 +1,4 @@
-# Ghostty — Mac terminal for SSH+tmux into tony-omen.
+# Ghostty — Mac terminal for SSH+tmux into a remote Linux box.
 # Fixes remote copy/paste: Ghostty honors OSC 52, which Terminal.app dropped.
 # NOTE: Ghostty has no inline comments — a '#' after a value becomes part of the value.
 
