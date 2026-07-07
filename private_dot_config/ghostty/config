@@ -49,6 +49,10 @@ macos-option-as-alt = true
 # in apps that don't speak the protocol.
 keybind = shift+enter=text:\n
 
+# Ctrl+Backspace -> delete previous word (^W), honored by zsh, readline, and
+# nvim insert. Ghostty otherwise sends a code nothing binds, so it appears dead.
+keybind = ctrl+backspace=text:\x17
+
 scrollback-limit = 10000000
 
 # Accessibility: force a minimum fg/bg contrast ratio so low-contrast color
