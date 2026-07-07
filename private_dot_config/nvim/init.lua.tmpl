@@ -146,16 +146,17 @@ require("lazy").setup({
   -- Completion
   {
     "hrsh7th/nvim-cmp",
-    dependencies = { "hrsh7th/cmp-nvim-lsp", "L3MON4D3/LuaSnip", "saadparwaiz1/cmp_luasnip" },
+    dependencies = { "hrsh7th/cmp-nvim-lsp" },
     config = function()
       local cmp = require("cmp")
       cmp.setup({
-        snippet = { expand = function(a) require("luasnip").lsp_expand(a.body) end },
+        -- native snippets (nvim >= 0.10) — avoids LuaSnip's flaky jsregexp submodule
+        snippet = { expand = function(a) vim.snippet.expand(a.body) end },
         mapping = cmp.mapping.preset.insert({
           ["<CR>"] = cmp.mapping.confirm({ select = true }),
           ["<C-Space>"] = cmp.mapping.complete(),
         }),
-        sources = { { name = "nvim_lsp" }, { name = "luasnip" } },
+        sources = { { name = "nvim_lsp" } },
       })
     end,
   },
