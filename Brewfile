@@ -17,6 +17,7 @@ brew "eza"           # modern ls
 brew "bat"           # modern cat
 brew "fd"            # modern find
 brew "ripgrep"       # rg
+brew "jq"            # JSON (used by the ~/.claude/settings.json modify script)
 
 # Editor
 brew "neovim"

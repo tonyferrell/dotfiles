@@ -22,6 +22,12 @@ brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"
 echo ">> installing dev tools (Linux, no sudo — user space)"
 mkdir -p "$HOME/.local/bin" "$HOME/.local/opt"
 
+# jq (static binary) — used by the ~/.claude/settings.json modify script
+if ! command -v jq >/dev/null 2>&1; then
+  curl -fsSL -o "$HOME/.local/bin/jq" https://github.com/jqlang/jq/releases/latest/download/jq-linux-amd64
+  chmod +x "$HOME/.local/bin/jq"
+fi
+
 # Rust CLI tools via cargo-binstall (prebuilt binaries). Install cargo-binstall from
 # its OWN prebuilt binary — no compile, so it works with an old system cargo too.
 if ! command -v cargo-binstall >/dev/null 2>&1; then
