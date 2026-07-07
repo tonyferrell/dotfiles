@@ -1,7 +1,7 @@
 # Dev environment — usage guide
 
 Your setup, and how to get the most out of it. Everything here is consistent across
-your Macs and omen (managed by chezmoi). Colors are colorblind-safe (protanopia)
+your Macs and Linux boxes (managed by chezmoi). Colors are colorblind-safe (protanopia)
 everywhere via one shared palette.
 
 ---
@@ -52,20 +52,17 @@ Status bar: **blue** = normal, **gold** = active window (CVD-safe, not the defau
 
 ---
 
-## SSH into omen
+## SSH into a remote box
 
-| Command | Result |
-|---|---|
-| `ssh omen` | Attach your tmux session (`main`) directly — auto-creates if none |
-| `ssh tony-omen` | Plain shell, no auto-attach |
-
-Connections multiplex (instant reconnects) and keep-alive through laptop sleep. Your
-Mac SSH key is forwarded, so `git push` from omen uses it. (Run once on the Mac:
+With an SSH host alias (in `~/.ssh/config` — not this repo): one alias attaches your
+tmux session directly (auto-creating if none), another gives a plain shell. Connections
+multiplex (instant reconnects) and keep-alive through laptop sleep. Your Mac SSH key is
+forwarded, so `git push` from the remote uses it. (Run once on the Mac:
 `ssh-add --apple-use-keychain ~/.ssh/id_ed25519`.)
 
 ---
 
-## Shell (zsh on Mac, bash on omen)
+## Shell (zsh on Mac, bash on Linux)
 
 | Tool | What you get | Try |
 |---|---|---|
@@ -115,7 +112,7 @@ Kickstart-style: LSP, Treesitter, fuzzy find, git signs — all CVD-themed.
 | LSP servers | `:Mason` |
 
 Diagnostics: error=vermillion, warn=gold, info=blue, hint=cyan — no red/green reliance.
-Yanks go to the system clipboard (OSC 52 works even on headless omen).
+Yanks go to the system clipboard (OSC 52 works even on a headless Linux box).
 
 ---
 
