@@ -53,6 +53,11 @@ keybind = shift+enter=text:\n
 # nvim insert. Ghostty otherwise sends a code nothing binds, so it appears dead.
 keybind = ctrl+backspace=text:\x17
 
+# Option+Backspace -> delete previous word too (macOS convention). Without this,
+# option-as-alt sends an ESC-prefixed sequence that flips the shell's line editor
+# into a vi-like command/meta-pending mode inside tmux.
+keybind = alt+backspace=text:\x17
+
 scrollback-limit = 10000000
 
 # Accessibility: force a minimum fg/bg contrast ratio so low-contrast color
