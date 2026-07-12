@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# chezmoi modify_ script -> ~/.claude/settings.json
+# Merges our default keys into the EXISTING file, preserving everything Claude Code
+# manages itself (permissions/allow, model, effortLevel, tui, …). Requires jq; if jq
+# isn't present yet it passes the file through unchanged (jq installs via the hook).
+set -euo pipefail
+current="$(cat)"
+[ -z "$current" ] && current='{}'
+if ! command -v jq >/dev/null 2>&1; then printf '%s' "$current"; exit 0; fi
+# Defaults: CVD theme + the multi-agent experience (agent teams + teammate mode) + push
+# notifications. Kept intentionally minimal — no secrets, no work-specific permissions.
+defaults='{
+  "theme": "dark-daltonized",
+  "teammateMode": "auto",
+  "agentPushNotifEnabled": true,
+  "env": { "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1" }
+}'
+printf '%s' "$current" | jq --argjson d "$defaults" '. * $d'
