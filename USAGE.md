@@ -66,8 +66,7 @@ forwarded, so `git push` from the remote uses it. (Run once on the Mac:
 
 | Tool | What you get | Try |
 |---|---|---|
-| **zoxide** | Jump to frecent dirs | `z <partial-dir>` |
-| **autojump** | classic dir jump | `j <partial-dir>` |
+| **zoxide** | Jump to frecent dirs (bound to `j`) | `j <partial-dir>`, `ji` interactive |
 | **atuin** | Full-text, synced shell history | `Ctrl-r` |
 | **fzf** | Fuzzy-find anything | `Ctrl-t` (files), `Ctrl-r` (history) |
 | **direnv** | Per-directory env auto-load | `direnv allow` in a dir |

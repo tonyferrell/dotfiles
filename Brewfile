@@ -7,8 +7,7 @@ cask "font-fira-code-nerd-font"
 brew "tmux"
 
 # Shell experience
-brew "zoxide"        # smarter cd (z)
-brew "autojump"      # classic dir jump (j) — muscle memory
+brew "zoxide"        # smarter cd — bound to `j` (frecency jump)
 brew "bitwarden-cli" # bw — secret retrieval for chezmoi
 brew "fzf"           # fuzzy finder
 brew "atuin"         # shell history

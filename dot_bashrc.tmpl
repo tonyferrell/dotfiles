@@ -27,11 +27,10 @@ export FZF_DEFAULT_OPTS="--color=hl:{{ .colors.blue }},hl+:{{ .colors.cyan }},po
 export EZA_COLORS="ga=32:gm=33:gd=31"
 
 # --- modern CLI tool inits (guarded; no-op if a tool is absent) ---
-command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init bash)"      # z <dir>
+command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init bash --cmd j)"  # j <dir> (frecency jump), ji interactive
 command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
 command -v atuin  >/dev/null 2>&1 && eval "$(atuin init bash)"        # Ctrl-r history
 command -v fzf    >/dev/null 2>&1 && eval "$(fzf --bash 2>/dev/null)" # Ctrl-t / Ctrl-r
-[ -f /usr/share/autojump/autojump.sh ] && . /usr/share/autojump/autojump.sh   # j <dir>
 [ -f ~/.fzf.bash ] && . ~/.fzf.bash
 
 # --- aliases ---
