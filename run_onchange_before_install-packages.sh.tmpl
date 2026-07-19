@@ -16,7 +16,7 @@ brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"
 [ -f "$HOME/.Brewfile.local" ] && brew bundle --file="$HOME/.Brewfile.local"
 
 {{ else if eq .chezmoi.os "linux" -}}
-# linux package set hash: 2026-07-07-a
+# linux package set hash: 2026-07-11-a
 # Everything installs into ~/.local (no sudo). Downloads go to a file then extract —
 # no piping remote scripts to a shell.
 echo ">> installing dev tools (Linux, no sudo — user space)"
@@ -34,9 +34,10 @@ if ! command -v cargo-binstall >/dev/null 2>&1; then
   curl -fsSL -o /tmp/cargo-binstall.tgz https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-x86_64-unknown-linux-musl.tgz
   tar -xzf /tmp/cargo-binstall.tgz -C "$HOME/.local/bin" cargo-binstall && rm -f /tmp/cargo-binstall.tgz
 fi
-# Prefer static musl builds (run on old glibc, e.g. Ubuntu 22.04); fall back to gnu.
-cargo-binstall --targets x86_64-unknown-linux-musl,x86_64-unknown-linux-gnu -y \
-  ripgrep fd-find bat eza git-delta difftastic zoxide atuin
+cargo-binstall -y ripgrep fd-find bat eza git-delta difftastic zoxide
+# atuin's default (gnu) build needs a newer glibc than Ubuntu 22.04 ships — pin to the
+# static musl build so it runs anywhere. (A comma-separated --targets list isn't valid.)
+cargo-binstall --targets x86_64-unknown-linux-musl -y atuin
 
 # Node (pinned LTS static tarball) — needed by pyright + hunk. Skip if node >= 18 exists.
 if [ "$(node -v 2>/dev/null | sed 's/v//;s/\..*//' || echo 0)" -lt 18 ]; then
