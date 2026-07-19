@@ -13,7 +13,9 @@ TPM_DIR="$HOME/.config/tmux/plugins/tpm"
 echo ">> brew bundle (macOS)"
 brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"
 # per-machine extra packages (not in this repo), if present
-[ -f "$HOME/.Brewfile.local" ] && brew bundle --file="$HOME/.Brewfile.local"
+if [ -f "$HOME/.Brewfile.local" ]; then
+  brew bundle --file="$HOME/.Brewfile.local"
+fi
 
 {{ else if eq .chezmoi.os "linux" -}}
 # linux package set hash: 2026-07-19-a
