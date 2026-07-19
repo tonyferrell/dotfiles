@@ -43,6 +43,16 @@ alias gs='git status'
 alias gd='git diff'
 alias review='git review'   # hunk TUI on the working diff
 
+# Reset stray terminal mouse-reporting after an ssh session exits — an abruptly-dropped
+# remote tmux can leave the terminal in mouse mode (mouse moves dump escape sequences).
+# Only outside tmux; writes to the tty (so piped ssh output isn't polluted); preserves
+# ssh's exit code. Completion still works (it keys on the name, not the type).
+ssh() {
+  command ssh "$@"; local rc=$?
+  [[ -z "${TMUX:-}" ]] && printf '\e[?1000l\e[?1002l\e[?1003l\e[?1006l' >/dev/tty 2>/dev/null
+  return $rc
+}
+
 # (Work-specific prompt logic lives in the private overlay's work.sh, sourced below.)
 
 # --- machine-local overrides (NOT in this repo: hand-written per machine, or

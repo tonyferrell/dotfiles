@@ -46,6 +46,13 @@ alias gs='git status'
 alias gd='git diff'
 alias review='git review'   # hunk TUI on the working diff
 
+# Reset stray terminal mouse-reporting after an ssh session exits (see zsh note).
+ssh() {
+  command ssh "$@"; local rc=$?
+  [ -z "${TMUX:-}" ] && printf '\e[?1000l\e[?1002l\e[?1003l\e[?1006l' >/dev/tty 2>/dev/null
+  return $rc
+}
+
 # --- machine-local overrides (NOT in this repo): CUDA/conda, work prompt, work env,
 #     secrets, etc. Hand-written per machine or delivered by a private overlay. ---
 [ -f ~/.bashrc.local ] && . ~/.bashrc.local
