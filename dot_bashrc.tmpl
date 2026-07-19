@@ -29,6 +29,8 @@ export EZA_COLORS="ga=32:gm=33:gd=31"
 # --- modern CLI tool inits (guarded; no-op if a tool is absent) ---
 command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init bash --cmd j)"  # j <dir> (frecency jump), ji interactive
 command -v direnv >/dev/null 2>&1 && eval "$(direnv hook bash)"
+# bash-preexec must load BEFORE atuin — atuin's bash history capture depends on it.
+[ -f ~/.local/share/bash-preexec.sh ] && . ~/.local/share/bash-preexec.sh
 command -v atuin  >/dev/null 2>&1 && eval "$(atuin init bash)"        # Ctrl-r history
 command -v fzf    >/dev/null 2>&1 && eval "$(fzf --bash 2>/dev/null)" # Ctrl-t / Ctrl-r
 [ -f ~/.fzf.bash ] && . ~/.fzf.bash

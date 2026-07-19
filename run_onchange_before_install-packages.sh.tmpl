@@ -16,7 +16,7 @@ brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"
 [ -f "$HOME/.Brewfile.local" ] && brew bundle --file="$HOME/.Brewfile.local"
 
 {{ else if eq .chezmoi.os "linux" -}}
-# linux package set hash: 2026-07-11-a
+# linux package set hash: 2026-07-19-a
 # Everything installs into ~/.local (no sudo). Downloads go to a file then extract —
 # no piping remote scripts to a shell.
 echo ">> installing dev tools (Linux, no sudo — user space)"
@@ -26,6 +26,12 @@ mkdir -p "$HOME/.local/bin" "$HOME/.local/opt"
 if ! command -v jq >/dev/null 2>&1; then
   curl -fsSL -o "$HOME/.local/bin/jq" https://github.com/jqlang/jq/releases/latest/download/jq-linux-amd64
   chmod +x "$HOME/.local/bin/jq"
+fi
+
+# bash-preexec — required for atuin's bash history capture (sourced by ~/.bashrc)
+if [ ! -f "$HOME/.local/share/bash-preexec.sh" ]; then
+  mkdir -p "$HOME/.local/share"
+  curl -fsSL -o "$HOME/.local/share/bash-preexec.sh" https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh
 fi
 
 # Rust CLI tools via cargo-binstall (prebuilt binaries). Install cargo-binstall from
